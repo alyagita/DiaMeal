@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pilih Metode - DiaMeal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy:  #0F2854;
+            --blue:  #1C4D8D;
+            --sky:   #4988C4;
+            --light: #BDE8F5;
+            --white: #ffffff;
+            --gray:  #f4f7fb;
+            --text:  #1a2540;
+            --muted: #6b7a99;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--gray);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 28px 20px 60px;
+        }
+
+        .bg-layer {
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 10% 0%, rgba(28,77,141,0.10) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 95% 100%, rgba(73,136,196,0.08) 0%, transparent 55%),
+                var(--gray);
+            z-index: 0;
+        }
+
+        .page { position: relative; z-index: 1; }
+
+        /* ── NAVBAR ── */
+        nav {
+            max-width: 900px;
+            margin: 0 auto 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5em;
+            font-weight: 900;
+            color: var(--navy);
+        }
+
+        .nav-logo span { color: var(--sky); }
+
+        .nav-user {
+            font-size: 0.88em;
+            font-weight: 500;
+            color: var(--muted);
+        }
+
+        .nav-user strong {
+            color: var(--navy);
+            font-weight: 600;
+        }
+
+        /* ── WRAPPER ── */
+        .wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* ── PAGE HEADER ── */
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(28,77,141,0.08);
+            border: 1px solid rgba(28,77,141,0.15);
+            color: var(--blue);
+            font-size: 0.78em;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 50px;
+            margin-bottom: 18px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .eyebrow::before {
+            content: '';
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: var(--sky);
+        }
+
+        .page-header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.4em;
+            font-weight: 900;
+            color: var(--navy);
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .page-header p {
+            color: var(--muted);
+            font-size: 0.97em;
+            line-height: 1.7;
+        }
+
+        /* ── METHOD CARDS ── */
+        .methods {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+
+        .method-card {
+            background: var(--white);
+            border-radius: 20px;
+            border: 1.5px solid rgba(15,40,84,0.07);
+            box-shadow:
+                0 2px 4px rgba(15,40,84,0.04),
+                0 8px 28px rgba(15,40,84,0.08);
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .method-card:hover {
+            transform: translateY(-4px);
+            box-shadow:
+                0 2px 4px rgba(15,40,84,0.06),
+                0 16px 40px rgba(15,40,84,0.14);
+        }
+
+        .method-card-head {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+            padding: 28px 32px 24px;
+            color: var(--white);
+        }
+
+        .method-tag {
+            font-size: 0.72em;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            opacity: 0.6;
+            margin-bottom: 6px;
+        }
+
+        .method-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4em;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .method-abbr {
+            display: inline-block;
+            margin-top: 10px;
+            background: rgba(255,255,255,0.15);
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.78em;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .method-card-body {
+            padding: 28px 32px 32px;
+        }
+
+        .method-desc {
+            color: var(--muted);
+            font-size: 0.9em;
+            line-height: 1.75;
+            margin-bottom: 24px;
+        }
+
+        .method-points {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+
+        .method-point {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.85em;
+            color: var(--text);
+        }
+
+        .point-icon {
+            width: 18px; height: 18px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .point-icon svg {
+            width: 100%; height: 100%;
+            stroke: var(--sky);
+            fill: none;
+            stroke-width: 2.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .btn-method {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: var(--navy);
+            color: var(--white);
+            border: none;
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95em;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            box-shadow: 0 6px 20px rgba(15,40,84,0.22);
+            letter-spacing: 0.2px;
+        }
+
+        .btn-method:hover {
+            background: var(--blue);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 28px rgba(15,40,84,0.30);
+        }
+
+        /* ── BACK ── */
+        .back-wrap {
+            text-align: center;
+        }
+
+        .btn-back {
+            color: var(--muted);
+            font-size: 0.88em;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s;
+        }
+
+        .btn-back:hover { color: var(--navy); }
+
+        .btn-back svg {
+            width: 15px; height: 15px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* ── FADE IN ── */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(18px);
+            animation: fadeUp 0.55s ease forwards;
+        }
+        .fade-up:nth-child(1) { animation-delay: 0.05s; }
+        .fade-up:nth-child(2) { animation-delay: 0.15s; }
+        .fade-up:nth-child(3) { animation-delay: 0.22s; }
+        .method-card:nth-child(1) { animation: fadeUp 0.5s 0.1s ease both; }
+        .method-card:nth-child(2) { animation: fadeUp 0.5s 0.2s ease both; }
+
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 680px) {
+            .methods { grid-template-columns: 1fr; }
+            .page-header h1 { font-size: 1.9em; }
+            .method-card-head, .method-card-body { padding: 24px; }
+        }
+    </style>
+</head>
+<body>
+<div class="bg-layer"></div>
+<div class="page">
+
+    <nav>
+        <div class="nav-logo">Dia<span>Meal</span></div>
+        <div class="nav-user">Halo, <strong>{{ user_data.nama }}</strong></div>
+    </nav>
+
+    <div class="wrapper">
+
+        <div class="page-header">
+            <div class="eyebrow fade-up">Pilih Metode</div>
+            <h1 class="fade-up">Metode Rekomendasi</h1>
+            <p class="fade-up">Pilih salah satu metode di bawah untuk menghasilkan rekomendasi menu harian yang sesuai dengan kebutuhan gizi Anda.</p>
+        </div>
+
+        <div class="methods">
+
+            <!-- CBF -->
+            <div class="method-card">
+                <div class="method-card-head">
+                    <div class="method-tag">Metode 1</div>
+                    <div class="method-name">Content-Based Filtering</div>
+                    <div class="method-abbr">CBF</div>
+                </div>
+                <div class="method-card-body">
+                    <p class="method-desc">
+                        Menu diranking berdasarkan nilai RMSE terkecil. 
+                        <br> Semakin kecil RMSE, semakin dekat nutrisi menu ke target kebutuhan gizi Anda.
+                    </p>
+                    <a href="/cbf/generate" class="btn-method">Gunakan CBF</a>
+                </div>
+            </div>
+
+            <!-- PSO -->
+            <div class="method-card">
+                <div class="method-card-head">
+                    <div class="method-tag">Metode 2</div>
+                    <div class="method-name">Particle Swarm Optimization</div>
+                    <div class="method-abbr">PSO</div>
+                </div>
+                <div class="method-card-body">
+                    <p class="method-desc">
+                        Menu diranking berdasarkan nilai fitness tertinggi.
+                        <br> Semakin tinggi fitness, semakin kecil selisih nutrisi menu ke target kebutuhan gizi Anda.
+                    </p>
+                    <a href="/pso/generate" class="btn-method">Gunakan PSO</a>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="back-wrap">
+            <a href="/input" class="btn-back">
+                <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+                Ubah data diri
+            </a>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

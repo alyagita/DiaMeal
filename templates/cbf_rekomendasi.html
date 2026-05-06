@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekomendasi {{ rec_num }} - DiaMeal CBF</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #0F2854 0%, #1C4D8D 100%); min-height: 100vh; padding: 20px; }
+        .navbar { background: rgba(255,255,255,0.95); padding: 20px 40px; border-radius: 15px; display: flex; align-items: center; justify-content: space-between; max-width: 1400px; margin: 0 auto 20px auto; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .logo { font-size: 1.8em; font-weight: 900; background: linear-gradient(135deg, #0F2854 0%, #1C4D8D 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .user-info { color: #495057; font-weight: 600; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .nutrition-summary { background: white; padding: 25px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .nutrition-summary h2 { color: #0F2854; margin-bottom: 15px; font-size: 1.5em; }
+        .nutrition-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 15px; }
+        .nutrition-item { background: linear-gradient(135deg,#BDE8F5 0%,#a8d8f0 100%); padding: 15px; border-radius: 10px; text-align: center; }
+        .nutrition-item .label { font-weight: 700; color: #0F2854; margin-bottom: 5px; font-size: 0.9em; }
+        .nutrition-item .value { color: #333; font-size: 1.1em; }
+        .tabs-container { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .tabs-label { font-weight: 700; color: #0F2854; margin-bottom: 15px; font-size: 1.2em; }
+        .tabs { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .tab { background: #e9ecef; color: #495057; padding: 12px 25px; border-radius: 10px; text-decoration: none; font-weight: 600; transition: all 0.3s; }
+        .tab:hover { background: #dee2e6; }
+        .tab.active { background: linear-gradient(135deg,#0F2854 0%,#1C4D8D 100%); color: white; box-shadow: 0 5px 15px rgba(15,40,84,0.3); }
+        .tab.tab-analisis { background: linear-gradient(135deg, #1a7a4a, #27ae60); color: white; }
+        .tab.tab-analisis:hover { opacity: 0.88; }
+        .meal-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+        .meal-tab { background: #e9ecef; color: #495057; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s; font-size: 0.95em; }
+        .meal-tab:hover { background: #dee2e6; }
+        .meal-tab.active { background: linear-gradient(135deg,#1C4D8D 0%,#4988C4 100%); color: white; }
+        .content-card { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .content-title { color: #0F2854; font-size: 2em; margin-bottom: 25px; font-weight: 700; }
+        .menu-card { background: #f8f9fa; border-radius: 12px; padding: 25px; margin-bottom: 20px; border-left: 5px solid #1C4D8D; }
+        .menu-name { color: #0F2854; font-size: 1.5em; font-weight: 700; margin-bottom: 12px; }
+        .menu-detail { color: #666; margin: 8px 0; line-height: 1.6; }
+        .ingredients-list, .steps-list { background: white; padding: 15px; border-radius: 8px; margin-top: 12px; }
+        .ingredients-list div, .steps-list div { padding: 6px 0; border-bottom: 1px solid #e0e0e0; }
+        .ingredients-list div:last-child, .steps-list div:last-child { border-bottom: none; }
+        .nutrition-info { background: linear-gradient(135deg,#fff3e0 0%,#ffe0b2 100%); padding: 20px; border-radius: 10px; margin-top: 20px; }
+        .nutrition-info .label { font-weight: 700; color: #e65100; margin-bottom: 10px; font-size: 1.1em; }
+        .nutrition-info .values { color: #555; line-height: 2; }
+        .nutrition-info .rmse { background: #333; color: white; padding: 10px 20px; border-radius: 8px; display: inline-block; margin-top: 12px; font-weight: 700; }
+        .rmse-fitness-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+        .rmse-fitness-row .rmse { margin-top: 0; }
+        .btn-back { background: #e9ecef; color: #495057; padding: 12px 30px; border-radius: 10px; text-decoration: none; font-weight: 600; transition: all 0.3s; display: inline-block; margin-top: 20px; }
+        .btn-back:hover { background: #dee2e6; }
+        @media (max-width: 768px) { .navbar { flex-direction: column; gap: 15px; text-align: center; } .tabs, .meal-tabs { justify-content: center; } }
+    </style>
+</head>
+<body>
+<div class="navbar">
+    <div class="logo">DiaMeal - CBF</div>
+    <div class="user-info">{{ user_data.nama }} | {{ user_data.jk }}, {{ user_data.usia }} tahun</div>
+</div>
+<div class="container">
+
+    <div class="nutrition-summary">
+        <h2>Kebutuhan Gizi Harian Anda</h2>
+        <div class="nutrition-grid">
+            <div class="nutrition-item"><div class="label">Kalori</div><div class="value">{{ nutrisi.kalori[0]|round(1) }} - {{ nutrisi.kalori[1]|round(1) }} kkal</div></div>
+            <div class="nutrition-item"><div class="label">Karbohidrat</div><div class="value">{{ nutrisi.karbohidrat[0]|round(1) }} - {{ nutrisi.karbohidrat[1]|round(1) }} g</div></div>
+            <div class="nutrition-item"><div class="label">Protein</div><div class="value">{{ nutrisi.protein[0]|round(1) }} - {{ nutrisi.protein[1]|round(1) }} g</div></div>
+            <div class="nutrition-item"><div class="label">Lemak</div><div class="value">{{ nutrisi.lemak[0]|round(1) }} - {{ nutrisi.lemak[1]|round(1) }} g</div></div>
+            <div class="nutrition-item"><div class="label">Serat</div><div class="value">{{ nutrisi.serat[0]|round(1) }} - {{ nutrisi.serat[1]|round(1) }} g</div></div>
+        </div>
+    </div>
+
+    <div class="tabs-container">
+        <div class="tabs-label">Pilih Rekomendasi:</div>
+        <div class="tabs">
+            {% for i in range(1, 6) %}
+            <a href="/cbf/{{ i }}/{{ current_meal }}" class="tab {% if rec_num == i %}active{% endif %}">Rekomendasi {{ i }}</a>
+            {% endfor %}
+            <a href="/cbf/analisis/" class="tab tab-analisis">&#9998; Analisis Hasil</a>
+        </div>
+    </div>
+
+    <div class="meal-tabs">
+        <a href="/cbf/{{ rec_num }}/sarapan" class="meal-tab {% if current_meal=='sarapan' %}active{% endif %}">Sarapan</a>
+        <a href="/cbf/{{ rec_num }}/camilan_pagi" class="meal-tab {% if current_meal=='camilan_pagi' %}active{% endif %}">Camilan Pagi</a>
+        <a href="/cbf/{{ rec_num }}/makan_siang" class="meal-tab {% if current_meal=='makan_siang' %}active{% endif %}">Makan Siang</a>
+        <a href="/cbf/{{ rec_num }}/camilan_sore" class="meal-tab {% if current_meal=='camilan_sore' %}active{% endif %}">Camilan Sore</a>
+        <a href="/cbf/{{ rec_num }}/makan_malam" class="meal-tab {% if current_meal=='makan_malam' %}active{% endif %}">Makan Malam</a>
+    </div>
+
+    <div class="content-card">
+        {% set h = hasil[rec_num - 1] %}
+
+        {# ══ SARAPAN ══ #}
+        {% if current_meal == 'sarapan' %}
+        <div class="content-title">Sarapan (4 Menu: Lauk + Sayur + Nasi + Buah)</div>
+        {% if h.menu_sarapan %}
+        <div class="menu-card">
+            <div class="menu-name">{{ h.menu_sarapan.nama_menu }}</div>
+            {% if h.menu_sarapan.porsi %}<div class="menu-detail"><strong>Porsi:</strong> {{ h.menu_sarapan.porsi }}</div>{% endif %}
+            {% if h.menu_sarapan['bahan-bahan'] %}
+            <div class="menu-detail"><strong>Bahan-bahan:</strong></div>
+            <div class="ingredients-list">
+                {% for b in h.menu_sarapan['bahan-bahan'].split('\n') %}{% if b.strip() %}<div>&bull; {{ b.strip() }}</div>{% endif %}{% endfor %}
+            </div>
+            {% endif %}
+            {% if h.menu_sarapan.cara_memasak %}
+            <div class="menu-detail" style="margin-top:15px;"><strong>Cara Memasak:</strong></div>
+            <div class="steps-list">
+                {% for s in h.menu_sarapan.cara_memasak.split('\n') %}{% if s.strip() %}<div>{{ s.strip() }}</div>{% endif %}{% endfor %}
+            </div>
+            {% endif %}
+            <div class="nutrition-info">
+                <div class="label">TARGET NUTRISI</div>
+                <div class="values">Kalori: {{ h.targets.menu_sarapan.kalori[0]|round(1) }} - {{ h.targets.menu_sarapan.kalori[1]|round(1) }} kkal | Karbohidrat: {{ h.targets.menu_sarapan.karbohidrat[0]|round(1) }} - {{ h.targets.menu_sarapan.karbohidrat[1]|round(1) }} g | Protein: {{ h.targets.menu_sarapan.protein[0]|round(1) }} - {{ h.targets.menu_sarapan.protein[1]|round(1) }} g | Lemak: {{ h.targets.menu_sarapan.lemak[0]|round(1) }} - {{ h.targets.menu_sarapan.lemak[1]|round(1) }} g | Serat: {{ h.targets.menu_sarapan.serat[0]|round(1) }} - {{ h.targets.menu_sarapan.serat[1]|round(1) }} g</div>
+                <div class="label" style="margin-top:12px;">NUTRISI AKTUAL (Per Porsi)</div>
+                <div class="values">Kalori: {{ h.menu_sarapan.kalori|round(1) }} kkal | Karbohidrat: {{ h.menu_sarapan.karbohidrat|round(1) }} g | Protein: {{ h.menu_sarapan.protein|round(1) }} g | Lemak: {{ h.menu_sarapan.lemak|round(1) }} g | Serat: {{ h.menu_sarapan.serat|round(1) }} g</div>
+                <div class="rmse-fitness-row">
+                    <div class="rmse">MAE: {{ h.menu_sarapan.mae|round(4) }}</div>
+                    <div class="rmse">RMSE: {{ h.menu_sarapan.rmse|round(4) }}</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if h.sayur_sarapan %}
+        <div class="menu-card">
+            <div class="menu-name">{{ h.sayur_sarapan.nama_menu }}</div>
+            {% if h.sayur_sarapan.porsi %}<div class="menu-detail"><strong>Porsi:</strong> {{ h.sayur_sarapan.porsi }}</div>{% endif %}
+            {% if h.sayur_sarapan['bahan-bahan'] %}
+            <div class="menu-detail"><strong>Bahan-bahan:</strong></div>
+            <div class="ingredients-list">
+                {% for b in h.sayur_sarapan['bahan-bahan'].split('\n') %}{% if b.strip() %}<div>&bull; {{ b.strip() }}</div>{% endif %}{% endfor %}
+            </div>
+            {% endif %}
+            {% if h.sayur_sarapan.cara_memasak %}
+            <div class="menu-detail" style="margin-top:15px;"><strong>Cara Memasak:</strong></div>
+            <div class="steps-list">
+                {% for s in h.sayur_sarapan.cara_memasak.split('\n') %}{% if s.strip() %}<div>{{ s.strip() }}</div>{% endif %}{% endfor %}
+            </div>
+            {% endif %}
+            <div class="nutrition-info">
+                <div class="label">TARGET NUTRISI</div>
+                <div class="values">Kalori: {{ h.targets.sayur_sarapan.kalori[0]|round(1) }} - {{ h.targets.sayur_sarapan.kalori[1]|round(1) }} kkal | Karbohidrat: {{ h.targets.sayur_sarapan.karbohidrat[0]|round(1) }} - {{ h.targets.sayur_sarapan.karbohidrat[1]|round(1) }} g | Protein: {{ h.targets.sayur_sarapan.protein[0]|round(1) }} - {{ h.targets.sayur_sarapan.protein[1]|round(1) }} g | Lemak: {{ h.targets.sayur_sarapan.lemak[0]|round(1) }} - {{ h.targets.sayur_sarapan.lemak[1]|round(1) }} g | Serat: {{ h.targets.sayur_sarapan.serat[0]|round(1) }} - {{ h.targets.sayur_sarapan.serat[1]|round(1) }} g</div>
+                <div class="label" style="margin-top:12px;">NUTRISI AKTUAL (Per Porsi)</div>
+                <div class="values">Kalori: {{ h.sayur_sarapan.kalori|round(1) }} kkal | Karbohidrat: {{ h.sayur_sarapan.karbohidrat|round(1) }} g | Protein: {{ h.sayur_sarapan.protein|round(1) }} g | Lemak: {{ h.sayur_sarapan.lemak|round(1) }} g | Serat: {{ h.sayur_sarapan.serat|round(1) }} g</div>
+                <div class="rmse-fitness-row">
+                    <div class="rmse">MAE: {{ h.sayur_sarapan.mae|round(4) }}</div>
+                    <div class="rmse">RMSE: {{ h.sayur_sarapan.rmse|round(4) }}</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if h.nasi_sarapan %}
+        <div class="menu-card">
+            <div class="menu-name">{{ h.nasi_sarapan.nama_menu }}</div>
+            {% if h.nasi_sarapan.porsi %}<div class="menu-detail"><strong>Porsi:</strong> {{ h.nasi_sarapan.porsi }}</div>{% endif %}
+            <div class="nutrition-info">
+                <div class="label">TARGET NUTRISI</div>
+                <div class="values">Kalori: {{ h.targets.nasi_sarapan.kalori[0]|round(1) }} - {{ h.targets.nasi_sarapan.kalori[1]|round(1) }} kkal | Karbohidrat: {{ h.targets.nasi_sarapan.karbohidrat[0]|round(1) }} - {{ h.targets.nasi_sarapan.karbohidrat[1]|round(1) }} g | Protein: {{ h.targets.nasi_sarapan.protein[0]|round(1) }} - {{ h.targets.nasi_sarapan.protein[1]|round(1) }} g | Lemak: {{ h.targets.nasi_sarapan.lemak[0]|round(1) }} - {{ h.targets.nasi_sarapan.lemak[1]|round(1) }} g | Serat: {{ h.targets.nasi_sarapan.serat[0]|round(1) }} - {{ h.targets.nasi_sarapan.serat[1]|round(1) }} g</div>
+                <div class="label" style="margin-top:12px;">NUTRISI AKTUAL</div>
+                <div class="values">Kalori: {{ h.nasi_sarapan.kalori|round(1) }} kkal | Karbohidrat: {{ h.nasi_sarapan.karbohidrat|round(1) }} g | Protein: {{ h.nasi_sarapan.protein|round(1) }} g | Lemak: {{ h.nasi_sarapan.lemak|round(1) }} g | Serat: {{ h.nasi_sarapan.serat|round(1) }} g</div>
+                <div class="rmse-fitness-row">
+                    <div class="rmse">MAE: {{ h.nasi_sarapan.mae|round(4) }}</div>
+                    <div class="rmse">RMSE: {{ h.nasi_sarapan.rmse|round(4) }}</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if h.buah_sarapan %}
+        <div class="menu-card">
+            <div class="menu-name">{{ h.buah_sarapan.nama_menu }}</div>
+            {% if h.buah_sarapan.porsi %}<div class="menu-detail"><strong>Porsi:</strong> {{ h.buah_sarapan.porsi }}</div>{% endif %}
+            <div class="nutrition-info">
+                <div class="label">TARGET NUTRISI</div>
+                <div class="values">Kalori: {{ h.targets.buah_sarapan.kalori[0]|round(1) }} - {{ h.targets.buah_sarapan.kalori[1]|round(1) }} kkal | Karbohidrat: {{ h.targets.buah_sarapan.karbohidrat[0]|round(1) }} - {{ h.targets.buah_sarapan.karbohidrat[1]|round(1) }} g | Protein: {{ h.targets.buah_sarapan.protein[0]|round(1) }} - {{ h.targets.buah_sarapan.protein[1]|round(1) }} g | Lemak: {{ h.targets.buah_sarapan.lemak[0]|round(1) }} - {{ h.targets.buah_sarapan.lemak[1]|round(1) }} g | Serat: {{ h.targets.buah_sarapan.serat[0]|round(1) }} - {{ h.targets.buah_sarapan.serat[1]|round(1) }} g</div>
+                <div class="label" style="margin-top:12px;">NUTRISI AKTUAL</div>
+                <div class="values">Kalori: {{ h.buah_sarapan.kalori|round(1) }} kkal | Karbohidrat: {{ h.buah_sarapan.karbohidrat|round(1) }} g | Protein: {{ h.buah_sarapan.protein|round(1) }} g | Lemak: {{ h.buah_sarapan.lemak|round(1) }} g | Serat: {{ h.buah_sarapan.serat|round(1) }} g</div>
+                <div class="rmse-fitness-row">
+                    <div class="rmse">MAE: {{ h.buah_sarapan.mae|round(4) }}</div>
+                    <div class="rmse">RMSE: {{ h.buah_sarapan.rmse|round(4) }}</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        {# ══ CAMILAN PAGI ══ #}
+        {% if current_meal == 'camilan_pagi' %}
+        <div class="content-title">Camilan Pagi (1 Menu: Buah)</div>
+        {% if h.buah_pagi %}
+        <div class="menu-card">
+            <div class="menu-name">{{ h.buah_pagi.nama_menu }}</div>
+            {% if h.buah_pagi.porsi %}<div class="menu-detail"><strong>Porsi:</strong> {{ h.buah_pagi.porsi }}</div>{% endif %}
+            <div class="nutrition-info">
+                <div class="label">TARGET NUTRISI</div>
+                <div class="values">Kalori: {{ h.targets.buah_pagi.kalori[0]|round(1) }} - {{ h.targets.buah_pagi.kalori[1]|round(1) }} kkal | Karbohidrat: {{ h.targets.buah_pagi.karbohidrat[0]|round(1) }} - {{ h.targets.buah_pagi.karbohidrat[1]|round(1) }} g | Protein: {{ h.targets.buah_pagi.protein[0]|round(1) }} - {{ h.targets.buah_pagi.protein[1]|round(1) }} g | Lemak: {{ h.targets.buah_pagi.lemak[0]|round(1) }} - {{ h.targets.buah_pagi.lemak[1]|round(1) }} g | Serat: {{ h.targets.buah_pagi.serat[0]|round(1) }} - {{ h.targets.buah_pagi.serat[1]|round(1) }} g</div>
+                <div class="label" style="margin-top:12px;">NUTRISI AKTUAL</div>
+                <div class="values">Kalori: {{ h.buah_pagi.kalori|round(1) }} kkal | Karbohidrat: {{ h.buah_pagi.karbohidrat|round(1) }} g | Protein: {{ h.buah_pagi.protein|round(1) }} g | Lemak: {{ h.buah_pagi.lemak|round(1) }} g | Serat: {{ h.buah_pagi.serat|round(1) }} g</div>
+                <div class="rmse-fitness-row">
+                    <div class="rmse">MAE: {{ h.buah_pagi.mae|round(4) }}</div>
+                    <div class="rmse">RMSE: {{ h.buah_pagi.rmse|round(4) }}</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        {# ══ MAKAN SIANG ══ #}
+        {% if current_meal == 'makan_siang' %}
+        <div class="content-title">Makan Siang (4 Menu: Lauk + Sayur + Nasi + Buah)</div>
+        {% if h.menu_siang %}
+        <div class="menu-card">
+            <div class="menu-name">{{ h.menu_siang.nama_menu }}</div>
+            {% if h.menu_siang.porsi %}<div class="menu-detail"><strong>Porsi:</strong> {{ h.menu_siang.porsi }}</div>{% endif %}
+            {% if h.menu_siang['bahan-bahan'] %}
+            <div class="menu-detail"><strong>Bahan-bahan:</strong></div>
+            <div class="ingredients-list">
+                {% for b in h.menu_siang['bahan-bahan'].split('\n') %}{% if b.strip() %}<div>&bull; {{ b.strip() }}</div>{% endif %}{% endfor %}
+            </div>
+            {% endif %}
+            {% if h.menu_siang.cara_memasak %}
+            <div class="menu-detail" style="margin-top:15px;"><strong>Cara Memasak:</strong></div>
+            <div class="steps-list">
+                {% for s in h.menu_siang.cara_memasak.split('\n') %}{% if s.strip() %}<div>{{ s.strip() }}</div>{% endif %}{% endfor %}
+            </div>
+            {% endif %}
+            <div class="nutrition-info">
+                <div class="label">TARGET NUTRISI</div>
+                <div class="values">Kalori: {{ h.targets.menu_siang.kalori[0]|round(1) }} - {{ h.targets.menu_siang.kalori[1]|round(1) }} kkal | Karbohidrat: {{ h.targets.menu_siang.karbohidrat[0]|round(1) }} - {{ h.targets.menu_siang.karbohidrat[1]|round(1) }} g | Protein: {{ h.targets.menu_siang.protein[0]|round(1) }} - {{ h.targets.menu_siang.protein[1]|round(1) }} g | Lemak: {{ h.targets.menu_siang.lemak[0]|round(1) }} - {{ h.targets.menu_siang.lemak[1]|round(1) }} g | Serat: {{ h.targets.menu_siang.serat[0]|round(1) }} - {{ h.targets.menu_siang.serat[1]|round(1) }} g</div>
+                <div class="label" style="margin-top:12px;">NUTRISI AKTUAL (Per Porsi)</div>
+                <div class="values">Kalori: {{ h.menu_siang.kalori|round(1) }} kkal | Karbohidrat: {{ h.menu_siang.karbohidrat|round(1) }} g | Protein: {{ h.menu_siang.protein|round(1) }} g | Lemak: {{ h.menu_siang.lemak|round(1) }} g | Serat: {{ h.menu_siang.serat|round(1) }} g</div>
+                <div class="rmse-fitness-row">
+                    <div class="rmse">MAE: {{ h.menu_siang.mae|round(4) }}</div>
+                    <div class="rmse">RMSE: {{ h.menu_siang.rmse|round(4) }}</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if h.sayur_siang %}
+        <div class="menu-card">
+            <div class="menu-name">{{ h.sayur_siang.nama_menu }}</div>
+            {% if h.sayur_siang.porsi %}<div class="menu-detail"><strong>Porsi:</strong> {{ h.sayur_siang.porsi }}</div>{% endif %}
+            {% if h.sayur_siang['bahan-bahan'] %}
+            <div class="menu-detail"><strong>Bahan-bahan:</strong></div>
+            <div class="ingredients-list">
+                {% for b in h.sayur_siang['bahan-bahan'].split('\n') %}{% if b.strip() %}<div>&bull; {{ b.strip() }}</div>{% endif %}{% endfor %}
+            </div>
+            {% endif %}
+            {% if h.sayur_siang.cara_memasak %}
+            <div class="menu-detail" style="margin-top:15px;"><strong>Cara Memasak:</strong></div>
+            <div class="steps-list">
+                {% for s in h.sayur_siang.cara_memasak.split('\n') %}{% if s.strip() %}<div>{{ s.strip() }}</div>{% endif %}{% endfor %}
+            </div>
+            {% endif %}
+            <div class="nutrition-info">
+                <div class="label">TARGET NUTRISI</div>
+                <div class="values">Kalori: {{ h.targets.sayur_siang.kalori[0]|round(1) }} - {{ h.targets.sayur_siang.kalori[1]|round(1) }} kkal | Karbohidrat: {{ h.targets.sayur_siang.karbohidrat[0]|round(1) }} - {{ h.targets.sayur_siang.karbohidrat[1]|round(1) }} g | Protein: {{ h.targets.sayur_siang.protein[0]|round(1) }} - {{ h.targets.sayur_siang.protein[1]|round(1) }} g | Lemak: {{ h.targets.sayur_siang.lemak[0]|round(1) }} - {{ h.targets.sayur_siang.lemak[1]|round(1) }} g | Serat: {{ h.targets.sayur_siang.serat[0]|round(1) }} - {{ h.targets.sayur_siang.serat[1]|round(1) }} g</div>
+                <div class="label" style="margin-top:12px;">NUTRISI AKTUAL (Per Porsi)</div>
+                <div class="values">Kalori: {{ h.sayur_siang.kalori|round(1) }} kkal | Karbohidrat: {{ h.sayur_siang.karbohidrat|round(1) }} g | Protein: {{ h.sayur_siang.protein|round(1) }} g | Lemak: {{ h.sayur_siang.lemak|round(1) }} g | Serat: {{ h.sayur_siang.serat|round(1) }} g</div>
+                <div class="rmse-fitness-row">
+                    <div class="rmse">MAE: {{ h.sayur_siang.mae|round(4) }}</div>
+                    <div class="rmse">RMSE: {{ h.sayur_siang.rmse|round(4) }}</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if h.nasi_siang %}
+        <div class="menu-card">
+            <div class="menu-name">{{ h.nasi_siang.nama_menu }}</div>
+            {% if h.nasi_siang.porsi %}<div class="menu-detail"><strong>Porsi:</strong> {{ h.nasi_siang.porsi }}</div>{% endif %}
+            <div class="nutrition-info">
+                <div class="label">TARGET NUTRISI</div>
+                <div class="values">Kalori: {{ h.targets.nasi_siang.kalori[0]|round(1) }} - {{ h.targets.nasi_siang.kalori[1]|round(1) }} kkal | Karbohidrat: {{ h.targets.nasi_siang.karbohidrat[0]|round(1) }} - {{ h.targets.nasi_siang.karbohidrat[1]|round(1) }} g | Protein: {{ h.targets.nasi_siang.protein[0]|round(1) }} - {{ h.targets.nasi_siang.protein[1]|round(1) }} g | Lemak: {{ h.targets.nasi_siang.lemak[0]|round(1) }} - {{ h.targets.nasi_siang.lemak[1]|round(1) }} g | Serat: {{ h.targets.nasi_siang.serat[0]|round(1) }} - {{ h.targets.nasi_siang.serat[1]|round(1) }} g</div>
+                <div class="label" style="margin-top:12px;">NUTRISI AKTUAL</div>
+                <div class="values">Kalori: {{ h.nasi_siang.kalori|round(1) }} kkal | Karbohidrat: {{ h.nasi_siang.karbohidrat|round(1) }} g | Protein: {{ h.nasi_siang.protein|round(1) }} g | Lemak: {{ h.nasi_siang.lemak|round(1) }} g | Serat: {{ h.nasi_siang.serat|round(1) }} g</div>
+                <div class="rmse-fitness-row">
+                    <div class="rmse">MAE: {{ h.nasi_siang.mae|round(4) }}</div>
+                    <div class="rmse">RMSE: {{ h.nasi_siang.rmse|round(4) }}</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if h.buah_siang %}
+        <div class="menu-card">
+            <div class="menu-name">{{ h.buah_siang.nama_menu }}</div>
+            {% if h.buah_siang.porsi %}<div class="menu-detail"><strong>Porsi:</strong> {{ h.buah_siang.porsi }}</div>{% endif %}
+            <div class="nutrition-info">
+                <div class="label">TARGET NUTRISI</div>
+                <div class="values">Kalori: {{ h.targets.buah_siang.kalori[0]|round(1) }} - {{ h.targets.buah_siang.kalori[1]|round(1) }} kkal | Karbohidrat: {{ h.targets.buah_siang.karbohidrat[0]|round(1) }} - {{ h.targets.buah_siang.karbohidrat[1]|round(1) }} g | Protein: {{ h.targets.buah_siang.protein[0]|round(1) }} - {{ h.targets.buah_siang.protein[1]|round(1) }} g | Lemak: {{ h.targets.buah_siang.lemak[0]|round(1) }} - {{ h.targets.buah_siang.lemak[1]|round(1) }} g | Serat: {{ h.targets.buah_siang.serat[0]|round(1) }} - {{ h.targets.buah_siang.serat[1]|round(1) }} g</div>
+                <div class="label" style="margin-top:12px;">NUTRISI AKTUAL</div>
+                <div class="values">Kalori: {{ h.buah_siang.kalori|round(1) }} kkal | Karbohidrat: {{ h.buah_siang.karbohidrat|round(1) }} g | Protein: {{ h.buah_siang.protein|round(1) }} g | Lemak: {{ h.buah_siang.lemak|round(1) }} g | Serat: {{ h.buah_siang.serat|round(1) }} g</div>
+                <div class="rmse-fitness-row">
+                    <div class="rmse">MAE: {{ h.buah_siang.mae|round(4) }}</div>
+                    <div class="rmse">RMSE: {{ h.buah_siang.rmse|round(4) }}</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        {# ══ CAMILAN SORE ══ #}
+        {% if current_meal == 'camilan_sore' %}
+        <div class="content-title">Camilan Sore (1 Menu: Buah)</div>
+        {% if h.buah_sore %}
+        <div class="menu-card">
+            <div class="menu-name">{{ h.buah_sore.nama_menu }}</div>
+            {% if h.buah_sore.porsi %}<div class="menu-detail"><strong>Porsi:</strong> {{ h.buah_sore.porsi }}</div>{% endif %}
+            <div class="nutrition-info">
+                <div class="label">TARGET NUTRISI</div>
+                <div class="values">Kalori: {{ h.targets.buah_sore.kalori[0]|round(1) }} - {{ h.targets.buah_sore.kalori[1]|round(1) }} kkal | Karbohidrat: {{ h.targets.buah_sore.karbohidrat[0]|round(1) }} - {{ h.targets.buah_sore.karbohidrat[1]|round(1) }} g | Protein: {{ h.targets.buah_sore.protein[0]|round(1) }} - {{ h.targets.buah_sore.protein[1]|round(1) }} g | Lemak: {{ h.targets.buah_sore.lemak[0]|round(1) }} - {{ h.targets.buah_sore.lemak[1]|round(1) }} g | Serat: {{ h.targets.buah_sore.serat[0]|round(1) }} - {{ h.targets.buah_sore.serat[1]|round(1) }} g</div>
+                <div class="label" style="margin-top:12px;">NUTRISI AKTUAL</div>
+                <div class="values">Kalori: {{ h.buah_sore.kalori|round(1) }} kkal | Karbohidrat: {{ h.buah_sore.karbohidrat|round(1) }} g | Protein: {{ h.buah_sore.protein|round(1) }} g | Lemak: {{ h.buah_sore.lemak|round(1) }} g | Serat: {{ h.buah_sore.serat|round(1) }} g</div>
+                <div class="rmse-fitness-row">
+                    <div class="rmse">MAE: {{ h.buah_sore.mae|round(4) }}</div>
+                    <div class="rmse">RMSE: {{ h.buah_sore.rmse|round(4) }}</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        {# ══ MAKAN MALAM ══ #}
+        {% if current_meal == 'makan_malam' %}
+        <div class="content-title">Makan Malam (4 Menu: Lauk + Sayur + Nasi + Buah)</div>
+        {% if h.menu_malam %}
+        <div class="menu-card">
+            <div class="menu-name">{{ h.menu_malam.nama_menu }}</div>
+            {% if h.menu_malam.porsi %}<div class="menu-detail"><strong>Porsi:</strong> {{ h.menu_malam.porsi }}</div>{% endif %}
+            {% if h.menu_malam['bahan-bahan'] %}
+            <div class="menu-detail"><strong>Bahan-bahan:</strong></div>
+            <div class="ingredients-list">
+                {% for b in h.menu_malam['bahan-bahan'].split('\n') %}{% if b.strip() %}<div>&bull; {{ b.strip() }}</div>{% endif %}{% endfor %}
+            </div>
+            {% endif %}
+            {% if h.menu_malam.cara_memasak %}
+            <div class="menu-detail" style="margin-top:15px;"><strong>Cara Memasak:</strong></div>
+            <div class="steps-list">
+                {% for s in h.menu_malam.cara_memasak.split('\n') %}{% if s.strip() %}<div>{{ s.strip() }}</div>{% endif %}{% endfor %}
+            </div>
+            {% endif %}
+            <div class="nutrition-info">
+                <div class="label">TARGET NUTRISI</div>
+                <div class="values">Kalori: {{ h.targets.menu_malam.kalori[0]|round(1) }} - {{ h.targets.menu_malam.kalori[1]|round(1) }} kkal | Karbohidrat: {{ h.targets.menu_malam.karbohidrat[0]|round(1) }} - {{ h.targets.menu_malam.karbohidrat[1]|round(1) }} g | Protein: {{ h.targets.menu_malam.protein[0]|round(1) }} - {{ h.targets.menu_malam.protein[1]|round(1) }} g | Lemak: {{ h.targets.menu_malam.lemak[0]|round(1) }} - {{ h.targets.menu_malam.lemak[1]|round(1) }} g | Serat: {{ h.targets.menu_malam.serat[0]|round(1) }} - {{ h.targets.menu_malam.serat[1]|round(1) }} g</div>
+                <div class="label" style="margin-top:12px;">NUTRISI AKTUAL (Per Porsi)</div>
+                <div class="values">Kalori: {{ h.menu_malam.kalori|round(1) }} kkal | Karbohidrat: {{ h.menu_malam.karbohidrat|round(1) }} g | Protein: {{ h.menu_malam.protein|round(1) }} g | Lemak: {{ h.menu_malam.lemak|round(1) }} g | Serat: {{ h.menu_malam.serat|round(1) }} g</div>
+                <div class="rmse-fitness-row">
+                    <div class="rmse">MAE: {{ h.menu_malam.mae|round(4) }}</div>
+                    <div class="rmse">RMSE: {{ h.menu_malam.rmse|round(4) }}</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if h.sayur_malam %}
+        <div class="menu-card">
+            <div class="menu-name">{{ h.sayur_malam.nama_menu }}</div>
+            {% if h.sayur_malam.porsi %}<div class="menu-detail"><strong>Porsi:</strong> {{ h.sayur_malam.porsi }}</div>{% endif %}
+            {% if h.sayur_malam['bahan-bahan'] %}
+            <div class="menu-detail"><strong>Bahan-bahan:</strong></div>
+            <div class="ingredients-list">
+                {% for b in h.sayur_malam['bahan-bahan'].split('\n') %}{% if b.strip() %}<div>&bull; {{ b.strip() }}</div>{% endif %}{% endfor %}
+            </div>
+            {% endif %}
+            {% if h.sayur_malam.cara_memasak %}
+            <div class="menu-detail" style="margin-top:15px;"><strong>Cara Memasak:</strong></div>
+            <div class="steps-list">
+                {% for s in h.sayur_malam.cara_memasak.split('\n') %}{% if s.strip() %}<div>{{ s.strip() }}</div>{% endif %}{% endfor %}
+            </div>
+            {% endif %}
+            <div class="nutrition-info">
+                <div class="label">TARGET NUTRISI</div>
+                <div class="values">Kalori: {{ h.targets.sayur_malam.kalori[0]|round(1) }} - {{ h.targets.sayur_malam.kalori[1]|round(1) }} kkal | Karbohidrat: {{ h.targets.sayur_malam.karbohidrat[0]|round(1) }} - {{ h.targets.sayur_malam.karbohidrat[1]|round(1) }} g | Protein: {{ h.targets.sayur_malam.protein[0]|round(1) }} - {{ h.targets.sayur_malam.protein[1]|round(1) }} g | Lemak: {{ h.targets.sayur_malam.lemak[0]|round(1) }} - {{ h.targets.sayur_malam.lemak[1]|round(1) }} g | Serat: {{ h.targets.sayur_malam.serat[0]|round(1) }} - {{ h.targets.sayur_malam.serat[1]|round(1) }} g</div>
+                <div class="label" style="margin-top:12px;">NUTRISI AKTUAL (Per Porsi)</div>
+                <div class="values">Kalori: {{ h.sayur_malam.kalori|round(1) }} kkal | Karbohidrat: {{ h.sayur_malam.karbohidrat|round(1) }} g | Protein: {{ h.sayur_malam.protein|round(1) }} g | Lemak: {{ h.sayur_malam.lemak|round(1) }} g | Serat: {{ h.sayur_malam.serat|round(1) }} g</div>
+                <div class="rmse-fitness-row">
+                    <div class="rmse">MAE: {{ h.sayur_malam.mae|round(4) }}</div>
+                    <div class="rmse">RMSE: {{ h.sayur_malam.rmse|round(4) }}</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if h.nasi_malam %}
+        <div class="menu-card">
+            <div class="menu-name">{{ h.nasi_malam.nama_menu }}</div>
+            {% if h.nasi_malam.porsi %}<div class="menu-detail"><strong>Porsi:</strong> {{ h.nasi_malam.porsi }}</div>{% endif %}
+            <div class="nutrition-info">
+                <div class="label">TARGET NUTRISI</div>
+                <div class="values">Kalori: {{ h.targets.nasi_malam.kalori[0]|round(1) }} - {{ h.targets.nasi_malam.kalori[1]|round(1) }} kkal | Karbohidrat: {{ h.targets.nasi_malam.karbohidrat[0]|round(1) }} - {{ h.targets.nasi_malam.karbohidrat[1]|round(1) }} g | Protein: {{ h.targets.nasi_malam.protein[0]|round(1) }} - {{ h.targets.nasi_malam.protein[1]|round(1) }} g | Lemak: {{ h.targets.nasi_malam.lemak[0]|round(1) }} - {{ h.targets.nasi_malam.lemak[1]|round(1) }} g | Serat: {{ h.targets.nasi_malam.serat[0]|round(1) }} - {{ h.targets.nasi_malam.serat[1]|round(1) }} g</div>
+                <div class="label" style="margin-top:12px;">NUTRISI AKTUAL</div>
+                <div class="values">Kalori: {{ h.nasi_malam.kalori|round(1) }} kkal | Karbohidrat: {{ h.nasi_malam.karbohidrat|round(1) }} g | Protein: {{ h.nasi_malam.protein|round(1) }} g | Lemak: {{ h.nasi_malam.lemak|round(1) }} g | Serat: {{ h.nasi_malam.serat|round(1) }} g</div>
+                <div class="rmse-fitness-row">
+                    <div class="rmse">MAE: {{ h.nasi_malam.mae|round(4) }}</div>
+                    <div class="rmse">RMSE: {{ h.nasi_malam.rmse|round(4) }}</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if h.buah_malam %}
+        <div class="menu-card">
+            <div class="menu-name">{{ h.buah_malam.nama_menu }}</div>
+            {% if h.buah_malam.porsi %}<div class="menu-detail"><strong>Porsi:</strong> {{ h.buah_malam.porsi }}</div>{% endif %}
+            <div class="nutrition-info">
+                <div class="label">TARGET NUTRISI</div>
+                <div class="values">Kalori: {{ h.targets.buah_malam.kalori[0]|round(1) }} - {{ h.targets.buah_malam.kalori[1]|round(1) }} kkal | Karbohidrat: {{ h.targets.buah_malam.karbohidrat[0]|round(1) }} - {{ h.targets.buah_malam.karbohidrat[1]|round(1) }} g | Protein: {{ h.targets.buah_malam.protein[0]|round(1) }} - {{ h.targets.buah_malam.protein[1]|round(1) }} g | Lemak: {{ h.targets.buah_malam.lemak[0]|round(1) }} - {{ h.targets.buah_malam.lemak[1]|round(1) }} g | Serat: {{ h.targets.buah_malam.serat[0]|round(1) }} - {{ h.targets.buah_malam.serat[1]|round(1) }} g</div>
+                <div class="label" style="margin-top:12px;">NUTRISI AKTUAL</div>
+                <div class="values">Kalori: {{ h.buah_malam.kalori|round(1) }} kkal | Karbohidrat: {{ h.buah_malam.karbohidrat|round(1) }} g | Protein: {{ h.buah_malam.protein|round(1) }} g | Lemak: {{ h.buah_malam.lemak|round(1) }} g | Serat: {{ h.buah_malam.serat|round(1) }} g</div>
+                <div class="rmse-fitness-row">
+                    <div class="rmse">MAE: {{ h.buah_malam.mae|round(4) }}</div>
+                    <div class="rmse">RMSE: {{ h.buah_malam.rmse|round(4) }}</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        <a href="/metode" class="btn-back">Kembali ke Pemilihan Metode</a>
+    </div>
+
+</div>
+</body>
+</html>

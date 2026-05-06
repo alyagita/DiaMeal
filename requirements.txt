@@ -1,0 +1,14 @@
+# Flask dan dependencies
+Flask==3.0.0
+Werkzeug==3.0.1
+
+# Data processing
+pandas==2.1.4
+numpy==1.26.2
+
+# Excel file support
+openpyxl==3.1.2
+
+# Utilities
+python-dateutil==2.8.2
+pytz==2023.3

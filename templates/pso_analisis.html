@@ -1,0 +1,276 @@
+<!-- ============================================================================
+     FILE: templates/pso_analisis.html
+     Template analisis RMSE & MAE PSO
+     ============================================================================ -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisis RMSE & MAE — DiaMeal PSO</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #0F2854 0%, #1C4D8D 100%); min-height: 100vh; padding: 20px; }
+
+        .navbar { background: rgba(255,255,255,0.95); padding: 20px 40px; border-radius: 15px; display: flex; align-items: center; justify-content: space-between; max-width: 1400px; margin: 0 auto 20px auto; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .logo { font-size: 1.8em; font-weight: 900; background: linear-gradient(135deg, #0F2854 0%, #1C4D8D 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        /* Tabs */
+        .tabs-container { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .tabs-label { font-weight: 700; color: #0F2854; margin-bottom: 15px; font-size: 1.2em; }
+        .tabs { display: flex; gap: 10px; flex-wrap: wrap; }
+        .tab { background: #e9ecef; color: #495057; padding: 12px 25px; border-radius: 10px; text-decoration: none; font-weight: 600; transition: all 0.3s; }
+        .tab:hover { background: #dee2e6; }
+        .tab.active { background: linear-gradient(135deg, #0F2854, #1C4D8D); color: white; box-shadow: 0 5px 15px rgba(15,40,84,0.3); }
+        .tab.tab-analisis { background: linear-gradient(135deg, #1a7a4a, #27ae60); color: white; }
+        .tab.tab-analisis:hover { opacity: 0.88; }
+        .tab.tab-analisis.active { background: linear-gradient(135deg, #145a35, #1a7a4a); }
+
+        /* Hero */
+        .hero { background: linear-gradient(135deg, #0F2854, #1C4D8D); border-radius: 15px; padding: 28px 35px; margin-bottom: 22px; color: white; }
+        .hero h1 { font-size: 1.7em; font-weight: 800; margin-bottom: 5px; }
+
+        /* Card */
+        .card { background: white; border-radius: 15px; padding: 24px 28px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); margin-bottom: 22px; }
+        .card-title { color: #0F2854; font-size: 1.1em; font-weight: 700; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 3px solid #BDE8F5; }
+
+        /* Chart */
+        .chart-wrap { display: flex; justify-content: center; }
+        .chart-img { max-width: 640px; width: 100%; border-radius: 8px; border: 1px solid #e9ecef; display: block; }
+
+        /* Tabel */
+        .tbl-scroll { overflow-x: auto; }
+        table.metric-tbl { border-collapse: collapse; font-size: 0.8em; white-space: nowrap; }
+        table.metric-tbl th, table.metric-tbl td { border: 1px solid #90a4ae; padding: 6px 10px; text-align: center; }
+        
+        table.metric-tbl thead tr.tr-waktu th { background: #0F2854; color: white; font-size: 0.85em; font-weight: 700; border-color: #1a3a6e; padding: 8px 10px; }
+        table.metric-tbl thead tr.tr-sub th { background: #1C4D8D; color: white; font-size: 0.78em; font-weight: 600; border-color: #2a5fa8; padding: 6px 10px; }
+        
+        table.metric-tbl td.td-rek, table.metric-tbl th.th-rek { background: #e8eef7; color: #0F2854; font-weight: 700; text-align: left; border-right: 2px solid #0F2854; min-width: 95px; }
+        table.metric-tbl th.th-rek { background: #0F2854; color: white; }
+        
+        table.metric-tbl td.td-rata, table.metric-tbl th.th-rata { border-left: 2px solid #0F2854; font-weight: 700; min-width: 90px; }
+        table.metric-tbl th.th-rata { background: #0F2854; color: white; }
+        table.metric-tbl td.td-rata { background: #f5f5f5; }
+        
+        table.metric-tbl th.sep-left, table.metric-tbl td.sep-left { border-left: 2px solid #546e7a; }
+        
+        table.metric-tbl tr.row-best td { background: #e8f5e9; }
+        table.metric-tbl tr.row-best td.td-rek { background: #c8e6c9; color: #1a7a4a; }
+        table.metric-tbl tr.row-best td.td-rata { background: #a5d6a7; color: #1a7a4a; font-weight: 800; }
+        
+        .c-best { background: #1a7a4a !important; color: white !important; font-weight: 700; }
+        .c-best-rata { background: #1a7a4a !important; color: white !important; font-weight: 800; }
+
+        /* Analisis */
+        .analisis-box { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); border-left: 5px solid #27ae60; border-radius: 10px; padding: 18px 22px; margin-bottom: 15px; }
+        .analisis-box h3 { color: #1a7a4a; font-size: 1em; margin-bottom: 9px; }
+        .analisis-box p { color: #333; font-size: 0.9em; line-height: 1.8; }
+        .hl { font-weight: 700; color: #145a35; }
+
+        .keterangan { font-size: 0.78em; color: #777; margin-top: 11px; line-height: 1.7; }
+        .dot { display: inline-block; padding: 1px 7px; border-radius: 3px; font-weight: 700; font-size: 0.9em; }
+        .dot-green { background: #1a7a4a; color: white; }
+        .dot-green2 { background: #e8f5e9; color: #1a7a4a; border: 1px solid #a5d6a7; }
+
+        .btn-back { background: #e9ecef; color: #495057; padding: 11px 28px; border-radius: 10px; text-decoration: none; font-weight: 600; display: inline-block; margin-top: 8px; }
+        .btn-back:hover { background: #dee2e6; }
+        
+        /* Section Separator */
+        .section-separator { height: 30px; background: transparent; }
+    </style>
+</head>
+<body>
+<div class="navbar">
+    <div class="logo">DiaMeal - PSO</div>
+    <div style="color:#495057;font-weight:600;">Analisis Hasil Rekomendasi PSO</div>
+</div>
+<div class="container">
+
+    <!-- Tabs -->
+    <div class="tabs-container">
+        <div class="tabs-label">Pilih Rekomendasi:</div>
+        <div class="tabs">
+            {% for i in range(1, 6) %}
+            <a href="/pso/{{ i }}/sarapan" class="tab">Rekomendasi {{ i }}</a>
+            {% endfor %}
+            <a href="/pso/analisis/" class="tab tab-analisis active">&#9998; Analisis Hasil</a>
+        </div>
+    </div>
+
+    <!-- Hero -->
+    <div class="hero">
+        <h1>Analisis Hasil Rekomendasi PSO</h1>
+    </div>
+
+    <!-- ======================================================================
+         SECTION: RMSE
+         ====================================================================== -->
+
+    <!-- Bar chart RMSE -->
+    <div class="card">
+        <div class="card-title">Rata-Rata RMSE Setiap Rekomendasi</div>
+        <div class="chart-wrap">
+            <img class="chart-img" src="{{ chart_rmse }}" alt="Bar chart rata-rata RMSE">
+        </div>
+    </div>
+
+    <!-- Tabel RMSE -->
+    <div class="card">
+        <div class="card-title">Tabel RMSE Setiap Sub-kategori Menu</div>
+        <div class="tbl-scroll">
+            <table class="metric-tbl">
+                <thead>
+                    <tr class="tr-waktu">
+                        <th class="th-rek" rowspan="2">Rekomendasi</th>
+                        <th colspan="4">Sarapan</th>
+                        <th colspan="1" class="sep-left">Camilan Pagi</th>
+                        <th colspan="4" class="sep-left">Makan Siang</th>
+                        <th colspan="1" class="sep-left">Camilan Sore</th>
+                        <th colspan="4" class="sep-left">Makan Malam</th>
+                        <th class="th-rata" rowspan="2">Rata-Rata RMSE</th>
+                    </tr>
+                    <tr class="tr-sub">
+                        <th>Lauk</th><th>Sayur</th><th>Nasi</th><th>Buah</th>
+                        <th class="sep-left">Buah</th>
+                        <th class="sep-left">Lauk</th><th>Sayur</th><th>Nasi</th><th>Buah</th>
+                        <th class="sep-left">Buah</th>
+                        <th class="sep-left">Lauk</th><th>Sayur</th><th>Nasi</th><th>Buah</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows_rmse %}
+                    <tr class="{% if loop.index0 == idx_terbaik_rmse %}row-best{% endif %}">
+                        <td class="td-rek">
+                            Rek {{ row.rek }}{% if loop.index0 == idx_terbaik_rmse %} ★{% endif %}
+                        </td>
+                        {% for j in range(row.cols|length) %}
+                        {% set sep = j in [4, 5, 9, 10] %}
+                        <td class="{% if row.cols[j] == min_cols_rmse[j] %}c-best{% endif %}{% if sep %} sep-left{% endif %}">
+                            {{ "%.4f"|format(row.cols[j]) }}
+                        </td>
+                        {% endfor %}
+                        <td class="td-rata {% if row.rata == min_rata_rmse %}c-best-rata{% endif %}">
+                            {{ "%.4f"|format(row.rata) }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p class="keterangan">
+            <span class="dot dot-green">Hijau tua</span> = nilai RMSE terkecil pada kolom tersebut &nbsp;|&nbsp;
+            <span class="dot dot-green2">Hijau muda</span> = baris rekomendasi terbaik &nbsp;|&nbsp;
+            <strong>★</strong> = rekomendasi dengan rata-rata RMSE terkecil
+        </p>
+    </div>
+
+    <!-- ======================================================================
+         SECTION: MAE
+         ====================================================================== -->
+
+    <div class="section-separator"></div>
+
+    <!-- Bar chart MAE -->
+    <div class="card">
+        <div class="card-title">Rata-Rata MAE Setiap Rekomendasi</div>
+        <div class="chart-wrap">
+            <img class="chart-img" src="{{ chart_mae }}" alt="Bar chart rata-rata MAE">
+        </div>
+    </div>
+
+    <!-- Tabel MAE -->
+    <div class="card">
+        <div class="card-title">Tabel MAE Setiap Sub-kategori Menu</div>
+        <div class="tbl-scroll">
+            <table class="metric-tbl">
+                <thead>
+                    <tr class="tr-waktu">
+                        <th class="th-rek" rowspan="2">Rekomendasi</th>
+                        <th colspan="4">Sarapan</th>
+                        <th colspan="1" class="sep-left">Camilan Pagi</th>
+                        <th colspan="4" class="sep-left">Makan Siang</th>
+                        <th colspan="1" class="sep-left">Camilan Sore</th>
+                        <th colspan="4" class="sep-left">Makan Malam</th>
+                        <th class="th-rata" rowspan="2">Rata-Rata MAE</th>
+                    </tr>
+                    <tr class="tr-sub">
+                        <th>Lauk</th><th>Sayur</th><th>Nasi</th><th>Buah</th>
+                        <th class="sep-left">Buah</th>
+                        <th class="sep-left">Lauk</th><th>Sayur</th><th>Nasi</th><th>Buah</th>
+                        <th class="sep-left">Buah</th>
+                        <th class="sep-left">Lauk</th><th>Sayur</th><th>Nasi</th><th>Buah</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows_mae %}
+                    <tr class="{% if loop.index0 == idx_terbaik_mae %}row-best{% endif %}">
+                        <td class="td-rek">
+                            Rek {{ row.rek }}{% if loop.index0 == idx_terbaik_mae %} ★{% endif %}
+                        </td>
+                        {% for j in range(row.cols|length) %}
+                        {% set sep = j in [4, 5, 9, 10] %}
+                        <td class="{% if row.cols[j] == min_cols_mae[j] %}c-best{% endif %}{% if sep %} sep-left{% endif %}">
+                            {{ "%.4f"|format(row.cols[j]) }}
+                        </td>
+                        {% endfor %}
+                        <td class="td-rata {% if row.rata == min_rata_mae %}c-best-rata{% endif %}">
+                            {{ "%.4f"|format(row.rata) }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p class="keterangan">
+            <span class="dot dot-green">Hijau tua</span> = nilai MAE terkecil pada kolom tersebut &nbsp;|&nbsp;
+            <span class="dot dot-green2">Hijau muda</span> = baris rekomendasi terbaik &nbsp;|&nbsp;
+            <strong>★</strong> = rekomendasi dengan rata-rata MAE terkecil
+        </p>
+    </div>
+
+    <!-- ======================================================================
+         SECTION: ANALISIS
+         ====================================================================== -->
+
+    <!-- Analisis -->
+    <div class="card">
+        <div class="card-title">Analisis Hasil</div>
+        
+        <!-- Analisis RMSE -->
+        <div class="analisis-box">
+            <h3>&#9733; Kesimpulan Analisis RMSE</h3>
+            <p>
+                <span class="hl">Rekomendasi {{ idx_terbaik_rmse + 1 }}</span>
+                menghasilkan nilai rata-rata RMSE terkecil, yaitu sebesar
+                <span class="hl">{{ "%.4f"|format(rows_rmse[idx_terbaik_rmse].rata) }}</span>.
+            </p>
+            <p style="margin-top:9px;">
+                <span class="hl">Keterangan:</span> 
+                <br> - Rata-rata RMSE dihitung dengan menjumlahkan nilai RMSE dari seluruh 14 sub-kategori menu (lauk, sayur, nasi, dan buah untuk sarapan, makan siang, dan makan malam, serta buah untuk camilan pagi dan camilan sore), kemudian dibagi 14.
+                <br> - RMSE mengukur akar rata-rata kuadrat error (selisih kandungan nutrisi dengan target). Semakin kecil nilai rata-rata RMSE, semakin dekat kandungan nutrisi menu (kalori, karbohidrat, protein, lemak, dan serat) dengan rentang target kebutuhan gizi pengguna.
+            </p>
+        </div>
+
+        <!-- Analisis MAE -->
+        <div class="analisis-box">
+            <h3>&#9733; Kesimpulan Analisis MAE</h3>
+            <p>
+                <span class="hl">Rekomendasi {{ idx_terbaik_mae + 1 }}</span>
+                menghasilkan nilai rata-rata MAE terkecil, yaitu sebesar
+                <span class="hl">{{ "%.4f"|format(rows_mae[idx_terbaik_mae].rata) }}</span>.
+            </p>
+            <p style="margin-top:9px;">
+                <span class="hl">Keterangan:</span> 
+                <br> - Rata-rata MAE dihitung dengan menjumlahkan nilai MAE dari seluruh 14 sub-kategori menu (lauk, sayur, nasi, dan buah untuk sarapan, makan siang, dan makan malam, serta buah untuk camilan pagi dan camilan sore), kemudian dibagi 14.
+                <br> - MAE (Mean Absolute Error) mengukur rata-rata absolut error (selisih kandungan nutrisi dengan target). Semakin kecil nilai rata-rata MAE, semakin dekat kandungan nutrisi menu (kalori, karbohidrat, protein, lemak, dan serat) dengan rentang target kebutuhan gizi pengguna.
+            </p>
+        </div>
+    </div>
+
+    <a href="/pso/1/sarapan" class="btn-back">← Kembali ke Rekomendasi</a>
+
+</div>
+</body>
+</html>
